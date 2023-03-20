@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from cohpy.endpoint import (
-    GetAllLeaderBoards,
-    GetLeaderBoard
+    AllLeaderboards,
+    Leaderboard,
+    MatchHistory
 )
 from .leaderboards import Codes
 
@@ -11,54 +12,32 @@ class APIClient:
     """
     API interface between user and implementation
     """
-    _all_leaderboards: GetAllLeaderBoards = GetAllLeaderBoards()
-    _specific_leaderboard: GetLeaderBoard = GetLeaderBoard()
+    _all_leaderboards: AllLeaderboards = AllLeaderboards()
+    _specific_leaderboard: Leaderboard = Leaderboard()
+    _match_history: MatchHistory = MatchHistory()
 
-    @property
     def leaderboards(self) -> list:
         """
+        Return all types of leaderboards with info
         :return: All leaderboards
         """
         return self._all_leaderboards.leaderboards
 
-    @property
-    def raw_leaderboards(self) -> dict:
+    def leaderboard(self, *, leaderboard_id):
         """
-        :return: All leaderboards including the api response message
-        """
-        return self._all_leaderboards.raw_response
+        Retrieve data about a specific leaderboard given her id.
 
-    @property
-    def leaderboard_id(self):
+        :param leaderboard_id: int or cohpy.leaderboards.Code
+        :return: leaderboard info dict
         """
-        :return: Leaderboard id
-        """
-        return self._specific_leaderboard.leaderboard_id
+        if isinstance(leaderboard_id, Codes):
+            leaderboard_id = leaderboard_id.value
+        self._specific_leaderboard.leaderboard_id = leaderboard_id
+        return self._specific_leaderboard.players
 
-    @leaderboard_id.setter
-    def leaderboard_id(self, value):
-        """
-
-        :param value: int or Code instance. Set the leaderboard_id value for future requests
-        :return:
-        """
-        if isinstance(value, Codes):
-            value = value.value
-        self._specific_leaderboard.leaderboard_id = value
-
-    @property
-    def leaderboard_data(self):
-        """
-        Default parameters:
-        title = coh3
-
-        type = 1  (1 - ELO, 0 - WINS)
-
-        count = 200  (1-200)
-
-        :return: Data relative to leaderboard
-        """
-        return self._specific_leaderboard.leaderboard_data
+    def profile(self, *, profile_id):
+        self._match_history.player_id = profile_id
+        return self._match_history.profile
 
 
 def get_api_client() -> APIClient:

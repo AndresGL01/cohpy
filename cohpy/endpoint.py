@@ -2,6 +2,7 @@ import abc
 from dataclasses import dataclass, field
 
 import requests
+from requests import Response
 
 from .constants import (
     BASE_COH3_URL,
@@ -10,10 +11,8 @@ from .constants import (
 )
 
 from .exceptions import (
-    LeaderBoardIdIsNone,
     LeaderBoardDoesNotExist,
-    PlayerIdIsNone,
-    ProfileIdDoesNotExist
+    ProfileIdDoesNotExist,
 )
 
 
@@ -26,7 +25,6 @@ class Endpoint(abc.ABC):
     query_params: dict = field(default_factory=lambda: {'count': 100, 'type': 0})
     base_actions: str = BASE_ACTIONS
     base_url: str = BASE_COH3_URL
-    response: dict = None
 
     @property
     def url(self):
@@ -43,12 +41,21 @@ class Endpoint(abc.ABC):
             url += f'&{param}={self.query_params.get(param)}'
         return url
 
-    def validate_response(self, endpoint, response):
-        if response.status_code == 400:
-            if isinstance(endpoint, Leaderboard):
-                raise LeaderBoardDoesNotExist(self.leaderboard_pk)
-            if isinstance(endpoint, MatchHistory):
-                raise ProfileIdDoesNotExist(self.profile_id)
+    @staticmethod
+    def validate_response(response) -> bool:
+        """
+
+        :param response: Payload from the API
+        :return: False if validation fails else True
+        """
+        if response.status_code in [400]:
+            return False
+        response = response.json()
+        if response.get('result')['code'] == 5:
+            return False
+        if response.get('matchHistoryStats') is not None and response.get('profiles') is not None:
+            return bool(response.get('matchHistoryStats')) or bool(response.get('profiles'))
+        return True
 
 
 @dataclass
@@ -60,18 +67,11 @@ class AllLeaderboards(Endpoint):
 
     @property
     def leaderboards(self):
-        if not self.response:
-            self.get()
-        return self.response.get('leaderboards')
+        return self.get().json()
 
-    @property
-    def raw_response(self):
-        self.response = self.get()
-        return self.response
-
-    def get(self, **kwargs) -> dict:
-        self.response = requests.get(self.url).json()
-        return self.response
+    def get(self, **kwargs) -> Response:
+        response = requests.get(self.url)
+        return response
 
 
 @dataclass
@@ -80,8 +80,6 @@ class Leaderboard(Endpoint):
 
     @property
     def leaderboard_id(self):
-        if not self.leaderboard_pk:
-            raise LeaderBoardIdIsNone()
         return self.leaderboard_pk
 
     @leaderboard_id.setter
@@ -89,15 +87,15 @@ class Leaderboard(Endpoint):
         self.leaderboard_pk = value
 
     @property
-    def players(self):
-        self.response = self.get()
-        return self.response
+    def players(self) -> dict:
+        return self.get().json()
 
-    def get(self, **kwargs) -> dict:
+    def get(self, **kwargs) -> Response:
         self.query_params['leaderboard_id'] = self.leaderboard_id
         response = requests.get(self.url)
-        self.validate_response(self, response)
-        return response.json()
+        if not self.validate_response(response):
+            raise LeaderBoardDoesNotExist(self.leaderboard_id)
+        return response
 
 
 @dataclass
@@ -106,8 +104,6 @@ class MatchHistory(Endpoint):
 
     @property
     def player_id(self):
-        if not self.profile_id:
-            raise PlayerIdIsNone()
         return self.profile_id
 
     @player_id.setter
@@ -115,13 +111,14 @@ class MatchHistory(Endpoint):
         self.profile_id = value
 
     @property
-    def profile(self):
-        self.response = self.get()
-        return self.response.get('matchHistoryStats')
-
-    def get(self, **kwargs) -> dict:
-        self.query_params['profile_id'] = self.profile_id
-        response = requests.get(self.url)
-        self.validate_response(self, response)
+    def profile(self) -> dict:
+        response = self.get()
+        if not self.validate_response(response):
+            raise ProfileIdDoesNotExist(self.profile_id)
         return response.json()
 
+    def get(self, **kwargs) -> Response:
+        self.query_params['profile_id'] = self.profile_id
+        response = requests.get(self.url)
+        self.validate_response(response)
+        return response

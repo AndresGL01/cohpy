@@ -19,4 +19,4 @@ from .client import (
     get_api_client
 )
 
-from .leaderboards import Codes
+from .leaderboards import Codes, SortType

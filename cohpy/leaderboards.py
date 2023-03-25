@@ -32,3 +32,14 @@ class Codes(Enum):
     UKF4v4 = 2130356
     GER4v4 = 2130360
     DAK4v4 = 2130358
+
+
+class SortType(Enum):
+    """
+    Shortcut for Type filter
+
+    ELO => 0
+    WINS => 1
+    """
+    ELO = 0
+    WINS = 1

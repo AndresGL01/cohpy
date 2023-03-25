@@ -4,7 +4,7 @@ from cohpy.endpoint import (
     Leaderboard,
     MatchHistory
 )
-from .leaderboards import Codes
+from .leaderboards import Codes, SortType
 
 
 @dataclass
@@ -28,16 +28,23 @@ class APIClient:
             response.pop('result')
         return response
 
-    def leaderboard(self, *, leaderboard_id, remove_server_status=True):
+    def leaderboard(self, *, leaderboard_id, remove_server_status=True, count=200,
+                    sort_type=SortType.ELO):
         """
         Retrieve data about a specific leaderboard given her id.
 
+        :param sort_type: 1 == Sort by Wins, 0 == Sort by ELO. int or Type instance
+        :param count: How many players will be returned [1-200]
         :param leaderboard_id: int or cohpy.leaderboards.Code
         :param remove_server_status: Set to False if you want the server status response.
         :return: leaderboard info dict
         """
         if isinstance(leaderboard_id, Codes):
             leaderboard_id = leaderboard_id.value
+        if isinstance(sort_type, SortType):
+            sort_type = sort_type.value
+        self._specific_leaderboard.query_params['count'] = count
+        self._specific_leaderboard.query_params['type'] = sort_type
         self._specific_leaderboard.leaderboard_id = leaderboard_id
         response = self._specific_leaderboard.players
 

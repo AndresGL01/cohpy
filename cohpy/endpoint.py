@@ -22,7 +22,7 @@ class Endpoint(abc.ABC):
     leaderboard_pk: int = None
     profile_id: int = None
     title: str = TITLE_QUERY_PARAM
-    query_params: dict = field(default_factory=lambda: {'count': 100, 'type': 0})
+    query_params: dict = field(default_factory=lambda: {})
     base_actions: str = BASE_ACTIONS
     base_url: str = BASE_COH3_URL
 

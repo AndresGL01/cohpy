@@ -114,7 +114,7 @@ class MatchHistory(Endpoint):
     def profile(self) -> dict:
         response = self.get()
         if not self.validate_response(response):
-            raise ProfileIdDoesNotExist(self.profile_id)
+            raise ProfileIdDoesNotExist(self.player_id)
         return response.json()
 
     def get(self, **kwargs) -> Response:

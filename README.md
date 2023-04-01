@@ -95,7 +95,7 @@ api_client.personal_stats():
 
 - Parameters:
   - profile_params (mandatory): Player id. Can be steam profile id, relic id or alias (Don't forget to set the mode). Can be a list of ints or strings. Steam queries must follow /steam/[0-9]+
-  - mode (optional): **Default=relic** Set the query mode. Options are [relic, steam].
+  - mode (optional): **Default=relic** Set the query mode. Options are [relic, steam, alias].
   - remove_server_status (optional): **Default=True** Remove from the response the server status (redundant).
 You can show it setting this param to **False**
 ````python

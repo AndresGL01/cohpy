@@ -1,4 +1,6 @@
 import abc
+import json
+import re
 from dataclasses import dataclass, field
 
 import requests
@@ -13,14 +15,14 @@ from .constants import (
 from .exceptions import (
     LeaderBoardDoesNotExist,
     ProfileIdDoesNotExist,
+    BadSteamIdExpression,
+    BadRelicIdExpression,
 )
 
 
 @dataclass
 class Endpoint(abc.ABC):
     action: str
-    leaderboard_pk: int = None
-    profile_id: int = None
     title: str = TITLE_QUERY_PARAM
     query_params: dict = field(default_factory=lambda: {})
     base_actions: str = BASE_ACTIONS
@@ -58,6 +60,74 @@ class Endpoint(abc.ABC):
         return True
 
 
+class PlayersEndpoint(Endpoint):
+    _profile_params = None
+    _relic = None
+
+    @property
+    def profile_params(self):
+        return self._profile_params
+
+    @profile_params.setter
+    def profile_params(self, value):
+        self._profile_params = value
+
+    @property
+    def relic_mode(self):
+        return self._relic
+
+    @relic_mode.setter
+    def relic_mode(self, value):
+        self._relic = value
+
+    @abc.abstractmethod
+    def get(self, **kwargs) -> dict:
+        pass
+
+    def _set_params(self):
+        if not self.relic_mode:
+            self._validate_steam_params()
+            self.query_params['profile_names'] = json.dumps(self.profile_params)
+        else:
+            self._validate_relic_params()
+            self.query_params['profile_ids'] = json.dumps(self.profile_params)
+
+    def _validate_steam_params(self):
+        """
+        Validate that all steam profiles id are str and startswith steam/
+
+        Regex explanation:
+
+        - ^ is an anchor that specifies the beginning of the string.
+        - This means that the string being matched must start with /steam/.
+        - [0-9] is a character set that matches any digit (0-9).
+        - (+) quantifier specifies that the digit character set must occur one or more times.
+
+         Examples:
+
+        - /steam/123
+        - /steam/0
+        - /steam/9876543210
+        :return:
+        """
+        self.profile_params = self.profile_params.split() if type(self.profile_params) is str \
+            else self.profile_params
+        pattern = re.compile(r'^/steam/[0-9]+')
+        if not all(type(param) is str and
+                   re.fullmatch(pattern, param) for param in self.profile_params):
+            raise BadSteamIdExpression()
+
+    def _validate_relic_params(self):
+        """
+        Validate all relic's params are int
+        :return:
+        """
+        self.profile_params = [self.profile_params] if type(self.profile_params) is not list else \
+            self.profile_params
+        if not all(type(param) == int for param in self.profile_params):
+            raise BadRelicIdExpression()
+
+
 @dataclass
 class AllLeaderboards(Endpoint):
     """
@@ -77,6 +147,7 @@ class AllLeaderboards(Endpoint):
 @dataclass
 class Leaderboard(Endpoint):
     action: str = 'leaderboard/getleaderboard2'
+    leaderboard_pk: int = None
 
     @property
     def leaderboard_id(self):
@@ -99,26 +170,18 @@ class Leaderboard(Endpoint):
 
 
 @dataclass
-class MatchHistory(Endpoint):
-    action: str = 'Leaderboard/getRecentMatchHistoryByProfileId'
+class MatchHistory(PlayersEndpoint):
+    action: str = 'leaderboard/getRecentMatchHistory'
 
     @property
-    def player_id(self):
-        return self.profile_id
-
-    @player_id.setter
-    def player_id(self, value):
-        self.profile_id = value
-
-    @property
-    def profile(self) -> dict:
+    def match_history(self) -> dict:
         response = self.get()
         if not self.validate_response(response):
-            raise ProfileIdDoesNotExist(self.player_id)
+            raise ProfileIdDoesNotExist(self.profile_params)
         return response.json()
 
     def get(self, **kwargs) -> Response:
-        self.query_params['profile_id'] = self.profile_id
+        self._set_params()
         response = requests.get(self.url)
         self.validate_response(response)
         return response

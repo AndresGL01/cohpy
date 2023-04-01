@@ -64,3 +64,11 @@ class TestSpecificLeaderboardEndpoint(unittest.TestCase):
         expected_keys = ('statGroups', 'leaderboardStats', 'rankTotal',)
 
         assert all(key in expected_keys for key in response)
+
+    def test(self):
+        response = self.api_client.leaderboard(leaderboard_id=cohpy.Codes.USF3v3,
+                                               sort_type=SortType.ELO,
+                                               start=200)
+        expected_keys = ('statGroups', 'leaderboardStats', 'rankTotal',)
+
+        assert all(key in expected_keys for key in response)

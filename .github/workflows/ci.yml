@@ -22,5 +22,5 @@ jobs:
           if [ -f requirements.txt ]; then poetry install; fi
       - name: Lint
         run: |
-          poetry run flake8 --config=-flake8
+          poetry run flake8 --config=.flake8
           

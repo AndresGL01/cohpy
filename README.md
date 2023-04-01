@@ -13,6 +13,12 @@
 - [Functionalities](#Functionalities)
 - [Examples](#Examples)
 
+## How to install
+````shell
+pip install cohpy
+````
+Visit [Pypi](https://pypi.org/project/cohpy/) for more info!
+
 ## Current API Coverage
 - List all leaderboards ✔️
 - Show players from a leaderboard ️✔️

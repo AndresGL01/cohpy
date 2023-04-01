@@ -2,6 +2,8 @@
 <div style="text-align: center">
 <i>An unofficial API Wrapper for Company Of Heroes API</i>
 
+[![Lint and Tests](https://github.com/AndresGL01/cohpy/actions/workflows/ci.yml/badge.svg)](https://github.com/AndresGL01/cohpy/actions/workflows/ci.yml)
+
 <a href="https://github.com/AndresGL01/cohpy/stargazers"><img src="https://img.shields.io/github/stars/AndresGL01/cohpy" alt="Stars Badge"/></a>
 </div>
 

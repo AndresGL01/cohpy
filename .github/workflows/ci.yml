@@ -1,4 +1,4 @@
-name: Lint
+name: Lint and Tests
 
 on: [push]
 
@@ -21,8 +21,10 @@ jobs:
           pip install poetry
           poetry install
       - name: Lint
-        working-directory: ./
         run: |
           poetry run python -m flake8 --config=.flake8
+      - name: Tests and Coverage
+        run: |
+          coverage run -m unittest discover 
 
           

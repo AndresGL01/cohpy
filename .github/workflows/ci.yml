@@ -23,8 +23,8 @@ jobs:
       - name: Lint
         run: |
           poetry run python -m flake8 --config=.flake8
-      - name: Tests and Coverage
+      - name: Tests
         run: |
-          coverage run -m unittest discover 
+          python -m unittest
 
           

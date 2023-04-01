@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from cohpy.endpoint import (
     AllLeaderboards,
     Leaderboard,
@@ -12,9 +12,9 @@ class APIClient:
     """
     API interface between user and implementation
     """
-    _all_leaderboards: AllLeaderboards = AllLeaderboards()
-    _specific_leaderboard: Leaderboard = Leaderboard()
-    _match_history: MatchHistory = MatchHistory()
+    _all_leaderboards: AllLeaderboards = field(default_factory=lambda: AllLeaderboards())
+    _specific_leaderboard: Leaderboard = field(default_factory=lambda: Leaderboard())
+    _match_history: MatchHistory = field(default_factory=lambda: MatchHistory())
 
     def leaderboards(self, *, remove_server_status=True) -> dict:
         """

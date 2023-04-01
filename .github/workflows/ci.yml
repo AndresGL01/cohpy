@@ -23,6 +23,6 @@ jobs:
       - name: Lint
         working-directory: ./
         run: |
-          poetry run python -m flake8 --config=.flake8
+          poetry run python -m flake8
 
           

@@ -2,7 +2,8 @@ from dataclasses import dataclass, field
 from cohpy.endpoint import (
     AllLeaderboards,
     Leaderboard,
-    MatchHistory
+    MatchHistory,
+    PersonalStats,
 )
 from .leaderboards import Codes, SortType
 
@@ -15,6 +16,7 @@ class APIClient:
     _all_leaderboards: AllLeaderboards = field(default_factory=lambda: AllLeaderboards())
     _specific_leaderboard: Leaderboard = field(default_factory=lambda: Leaderboard())
     _match_history: MatchHistory = field(default_factory=lambda: MatchHistory())
+    _personal_stats: PersonalStats = field(default_factory=lambda: PersonalStats())
 
     def leaderboards(self, *, remove_server_status=True) -> dict:
         """
@@ -54,10 +56,9 @@ class APIClient:
             response.pop('result')
         return response
 
-    def match_history(self, *, profile_params, remove_server_status=True, relic=True):
+    def match_history(self, *, profile_params, remove_server_status=True, mode='relic'):
         """
-
-        :param relic: relic == True use relic ids, relic == False use steam ids
+        :param mode: Query mode against the API. Choose between steam, relic or alias
         :param profile_params: Relic's player (int) id, steam profile (str),
          list of Relic's players ids or list of steam profiles (list)
 
@@ -70,8 +71,17 @@ class APIClient:
         :return:
         """
         self._match_history.profile_params = profile_params
-        self._match_history.relic_mode = relic
+        self._match_history.query_mode = mode
         response = self._match_history.match_history
+        if remove_server_status:
+            response.pop('result')
+        return response
+
+    def personal_stats(self, *, profile_params, remove_server_status=True, mode='relic'):
+        self._personal_stats.profile_params = profile_params
+        self._personal_stats.query_mode = mode
+        response = self._personal_stats.personal_stats
+
         if remove_server_status:
             response.pop('result')
         return response

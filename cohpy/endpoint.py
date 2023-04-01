@@ -1,6 +1,7 @@
 import abc
 import json
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 
 import requests
@@ -17,6 +18,8 @@ from .exceptions import (
     ProfileIdDoesNotExist,
     BadSteamIdExpression,
     BadRelicIdExpression,
+    BadAliasesExpression,
+    QueryModeException,
 )
 
 
@@ -62,7 +65,7 @@ class Endpoint(abc.ABC):
 
 class PlayersEndpoint(Endpoint):
     _profile_params = None
-    _relic = None
+    _mode = None
 
     @property
     def profile_params(self):
@@ -73,24 +76,29 @@ class PlayersEndpoint(Endpoint):
         self._profile_params = value
 
     @property
-    def relic_mode(self):
-        return self._relic
+    def query_mode(self):
+        return self._mode
 
-    @relic_mode.setter
-    def relic_mode(self, value):
-        self._relic = value
+    @query_mode.setter
+    def query_mode(self, value):
+        self._mode = value
 
     @abc.abstractmethod
     def get(self, **kwargs) -> dict:
         pass
 
     def _set_params(self):
-        if not self.relic_mode:
+        if self.query_mode not in ['steam', 'relic', 'alias']:
+            raise QueryModeException(self.query_mode)
+        if self.query_mode == 'steam':
             self._validate_steam_params()
             self.query_params['profile_names'] = json.dumps(self.profile_params)
-        else:
+        elif self.query_mode == 'relic':
             self._validate_relic_params()
             self.query_params['profile_ids'] = json.dumps(self.profile_params)
+        elif self.query_mode == 'alias':
+            self._validate_aliases_params()
+            self.query_params['aliases'] = json.dumps(self.profile_params)
 
     def _validate_steam_params(self):
         """
@@ -126,6 +134,20 @@ class PlayersEndpoint(Endpoint):
             self.profile_params
         if not all(type(param) == int for param in self.profile_params):
             raise BadRelicIdExpression()
+
+    def _validate_aliases_params(self):
+        """
+        Validate all aliases params are str
+        :return:
+        """
+        self.profile_params = self.profile_params.split() if type(self.profile_params) is str \
+            else self.profile_params
+        if isinstance(self.profile_params, Iterable):
+            if not all(type(param) == str for param in self.profile_params):
+                raise BadAliasesExpression()
+        else:
+            if type(self.profile_params) != str:
+                raise BadAliasesExpression()
 
 
 @dataclass
@@ -175,6 +197,24 @@ class MatchHistory(PlayersEndpoint):
 
     @property
     def match_history(self) -> dict:
+        response = self.get()
+        if not self.validate_response(response):
+            raise ProfileIdDoesNotExist(self.profile_params)
+        return response.json()
+
+    def get(self, **kwargs) -> Response:
+        self._set_params()
+        response = requests.get(self.url)
+        self.validate_response(response)
+        return response
+
+
+@dataclass
+class PersonalStats(PlayersEndpoint):
+    action: str = 'leaderboard/getPersonalStat'
+
+    @property
+    def personal_stats(self):
         response = self.get()
         if not self.validate_response(response):
             raise ProfileIdDoesNotExist(self.profile_params)

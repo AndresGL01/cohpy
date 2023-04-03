@@ -1,10 +1,12 @@
 from dataclasses import dataclass, field
+
 from cohpy.endpoint import (
     AllLeaderboards,
     Leaderboard,
     MatchHistory,
     PersonalStats,
 )
+
 from .leaderboards import Codes, SortType
 
 
@@ -25,7 +27,7 @@ class APIClient:
         :param remove_server_status: Set to True if you want the server status response.
         :return: All leaderboards
         """
-        response = self._all_leaderboards.leaderboards
+        response = self._all_leaderboards.get()
         if remove_server_status:
             response.pop('result')
         return response
@@ -46,11 +48,12 @@ class APIClient:
             leaderboard_id = leaderboard_id.value
         if isinstance(sort_type, SortType):
             sort_type = sort_type.value
+        self._specific_leaderboard.query_params['leaderboard_id'] = leaderboard_id
         self._specific_leaderboard.query_params['count'] = count
         self._specific_leaderboard.query_params['type'] = sort_type
         self._specific_leaderboard.query_params['start'] = start
         self._specific_leaderboard.leaderboard_id = leaderboard_id
-        response = self._specific_leaderboard.players
+        response = self._specific_leaderboard.get()
 
         if remove_server_status:
             response.pop('result')
@@ -72,7 +75,7 @@ class APIClient:
         """
         self._match_history.profile_params = profile_params
         self._match_history.query_mode = mode
-        response = self._match_history.match_history
+        response = self._match_history.get()
         if remove_server_status:
             response.pop('result')
         return response
@@ -80,7 +83,7 @@ class APIClient:
     def personal_stats(self, *, profile_params, remove_server_status=True, mode='relic'):
         self._personal_stats.profile_params = profile_params
         self._personal_stats.query_mode = mode
-        response = self._personal_stats.personal_stats
+        response = self._personal_stats.get()
 
         if remove_server_status:
             response.pop('result')

@@ -2,32 +2,29 @@ import abc
 import json
 import re
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import requests
-from requests import Response
 
 from .constants import (
-    BASE_COH3_URL,
     BASE_ACTIONS,
+    BASE_COH3_URL,
     TITLE_QUERY_PARAM
 )
-
 from .exceptions import (
+    BadAliasesExpression,
+    BadRelicIdExpression,
+    BadSteamIdExpression,
     LeaderBoardDoesNotExist,
     ProfileIdDoesNotExist,
-    BadSteamIdExpression,
-    BadRelicIdExpression,
-    BadAliasesExpression,
     QueryModeException,
 )
 
 
-@dataclass
 class Endpoint(abc.ABC):
     action: str
     title: str = TITLE_QUERY_PARAM
-    query_params: dict = field(default_factory=lambda: {})
+    query_params: dict = {}
     base_actions: str = BASE_ACTIONS
     base_url: str = BASE_COH3_URL
 
@@ -35,9 +32,11 @@ class Endpoint(abc.ABC):
     def url(self):
         return self._build_url()
 
-    @abc.abstractmethod
     def get(self, **kwargs) -> dict:
-        pass
+        response = requests.get(self.url)
+        if not self.validate_response(response):
+            raise LeaderBoardDoesNotExist(self.query_params['leaderboard_id'])
+        return response.json()
 
     def _build_url(self) -> str:
         url = f'{self.base_url}{self.base_actions}{self.action}'
@@ -83,9 +82,12 @@ class PlayersEndpoint(Endpoint):
     def query_mode(self, value):
         self._mode = value
 
-    @abc.abstractmethod
     def get(self, **kwargs) -> dict:
-        pass
+        self._set_params()
+        response = requests.get(self.url)
+        if not self.validate_response(response):
+            raise ProfileIdDoesNotExist(self.profile_params)
+        return response.json()
 
     def _set_params(self):
         if self.query_mode not in ['steam', 'relic', 'alias']:
@@ -121,8 +123,8 @@ class PlayersEndpoint(Endpoint):
         self.profile_params = self.profile_params.split() if type(self.profile_params) is str \
             else self.profile_params
         pattern = re.compile(r'^/steam/[0-9]+')
-        if not all(type(param) is str and
-                   re.fullmatch(pattern, param) for param in self.profile_params):
+        if not all(type(param) is str and re.fullmatch(pattern, param)
+                   for param in self.profile_params):
             raise BadSteamIdExpression()
 
     def _validate_relic_params(self):
@@ -157,71 +159,26 @@ class AllLeaderboards(Endpoint):
     """
     action: str = 'leaderboard/getAvailableLeaderboards/'
 
-    @property
-    def leaderboards(self):
-        return self.get().json()
-
-    def get(self, **kwargs) -> Response:
-        response = requests.get(self.url)
-        return response
-
 
 @dataclass
 class Leaderboard(Endpoint):
+    """
+    Return concrete data about a leaderboard
+    """
     action: str = 'leaderboard/getleaderboard2'
-    leaderboard_pk: int = None
-
-    @property
-    def leaderboard_id(self):
-        return self.leaderboard_pk
-
-    @leaderboard_id.setter
-    def leaderboard_id(self, value):
-        self.leaderboard_pk = value
-
-    @property
-    def players(self) -> dict:
-        return self.get().json()
-
-    def get(self, **kwargs) -> Response:
-        self.query_params['leaderboard_id'] = self.leaderboard_id
-        response = requests.get(self.url)
-        if not self.validate_response(response):
-            raise LeaderBoardDoesNotExist(self.leaderboard_id)
-        return response
 
 
 @dataclass
 class MatchHistory(PlayersEndpoint):
+    """
+    Return player match history
+    """
     action: str = 'leaderboard/getRecentMatchHistory'
-
-    @property
-    def match_history(self) -> dict:
-        response = self.get()
-        if not self.validate_response(response):
-            raise ProfileIdDoesNotExist(self.profile_params)
-        return response.json()
-
-    def get(self, **kwargs) -> Response:
-        self._set_params()
-        response = requests.get(self.url)
-        self.validate_response(response)
-        return response
 
 
 @dataclass
 class PersonalStats(PlayersEndpoint):
+    """
+    Return personal player stats
+    """
     action: str = 'leaderboard/getPersonalStat'
-
-    @property
-    def personal_stats(self):
-        response = self.get()
-        if not self.validate_response(response):
-            raise ProfileIdDoesNotExist(self.profile_params)
-        return response.json()
-
-    def get(self, **kwargs) -> Response:
-        self._set_params()
-        response = requests.get(self.url)
-        self.validate_response(response)
-        return response

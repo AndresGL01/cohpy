@@ -20,3 +20,4 @@ from .client import (
 )
 
 from .leaderboards import Codes, SortType
+from .exceptions import *

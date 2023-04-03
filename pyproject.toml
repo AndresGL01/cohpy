@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cohpy"
-version = "1.1"
+version = "1.1.1"
 description = ""
 authors = ["Andres Garrido <andreslp0001@gmail.com>"]
 readme = "README.md"

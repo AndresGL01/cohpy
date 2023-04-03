@@ -1,7 +1,7 @@
 import unittest
+
 import cohpy
 from cohpy import SortType
-
 from cohpy.exceptions import (
     LeaderBoardDoesNotExist
 )

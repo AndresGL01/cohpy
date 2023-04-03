@@ -1,9 +1,11 @@
 import unittest
+
 import cohpy
 from cohpy.exceptions import (
-    ProfileIdDoesNotExist,
-    BadSteamIdExpression,
+    BadAliasesExpression,
     BadRelicIdExpression,
+    BadSteamIdExpression,
+    ProfileIdDoesNotExist,
     QueryModeException,
 )
 
@@ -70,6 +72,10 @@ class PersonalStatsTestCase(unittest.TestCase):
     def test_input_bad_ids_raise_exception(self):
         with self.assertRaises(BadRelicIdExpression):
             self.api_client.personal_stats(profile_params=[10058, 'test_value'])
+
+    def test_input_bad_aliases_raise_exception(self):
+        with self.assertRaises(BadAliasesExpression):
+            self.api_client.personal_stats(profile_params=[10058, 'test_value'], mode='alias')
 
     def test_bad_query_mode_raise_exception(self):
         with self.assertRaises(QueryModeException):

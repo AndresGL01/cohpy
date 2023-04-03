@@ -1,11 +1,11 @@
 import unittest
-import cohpy
 
+import cohpy
 from cohpy.exceptions import (
-    ProfileIdDoesNotExist,
     BadAliasesExpression,
     BadRelicIdExpression,
     BadSteamIdExpression,
+    ProfileIdDoesNotExist,
     QueryModeException,
 )
 

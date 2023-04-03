@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cohpy"
-version = "1.0.3"
+version = "1.1"
 description = ""
 authors = ["Andres Garrido <andreslp0001@gmail.com>"]
 readme = "README.md"
@@ -10,6 +10,7 @@ python = "^3.10"
 requests = "^2.28.2"
 flake8 = "^6.0.0"
 coverage = "^7.2.2"
+flake8-import-order = "^0.18.2"
 
 
 [build-system]

@@ -110,7 +110,7 @@ class PlayersEndpoint(Endpoint):
 
         - ^ is an anchor that specifies the beginning of the string.
         - This means that the string being matched must start with /steam/.
-        - [0-9] is a character set that matches any digit (0-9).
+        - d is a python shortcut for digits
         - (+) quantifier specifies that the digit character set must occur one or more times.
 
          Examples:
@@ -122,7 +122,7 @@ class PlayersEndpoint(Endpoint):
         """
         self.profile_params = self.profile_params.split() if type(self.profile_params) is str \
             else self.profile_params
-        pattern = re.compile(r'^/steam/[0-9]+')
+        pattern = re.compile(r'^/steam/\d+')
         if not all(type(param) is str and re.fullmatch(pattern, param)
                    for param in self.profile_params):
             raise BadSteamIdExpression()
@@ -134,7 +134,7 @@ class PlayersEndpoint(Endpoint):
         """
         self.profile_params = [self.profile_params] if type(self.profile_params) is not list else \
             self.profile_params
-        if not all(type(param) == int for param in self.profile_params):
+        if not all(isinstance(param, int) for param in self.profile_params):
             raise BadRelicIdExpression()
 
     def _validate_aliases_params(self):
@@ -145,10 +145,10 @@ class PlayersEndpoint(Endpoint):
         self.profile_params = self.profile_params.split() if type(self.profile_params) is str \
             else self.profile_params
         if isinstance(self.profile_params, Iterable):
-            if not all(type(param) == str for param in self.profile_params):
+            if not all(isinstance(param, str) for param in self.profile_params):
                 raise BadAliasesExpression()
         else:
-            if type(self.profile_params) != str:
+            if not isinstance(self.profile_params, str):
                 raise BadAliasesExpression()
 
 
@@ -163,7 +163,7 @@ class AllLeaderboards(Endpoint):
 @dataclass
 class Leaderboard(Endpoint):
     """
-    Return concrete data about a leaderboard
+    Return specific data about a leaderboard
     """
     action: str = 'leaderboard/getleaderboard2'
 

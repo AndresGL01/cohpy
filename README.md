@@ -56,7 +56,7 @@ api_client.leaderboards():
 
 - Parameters:
   - leaderboard_id (mandatory): Leaderboard identifier extracted from leaderboards() function. You can use raw ints like 2130329 or
-Code class that wraps more used leaderboards
+Code enum that wraps most used leaderboards
   - count (optional): **Default=200** How many players will be showed in the response. From 1 to 200.
   - sort_type (optional): **Default=ELO** Set the order of the leaderboard based on wins or elo. You can use ints like 0 (ELO) or 1 (WINS). Also you can use SortType wrapper
   - start (optional): **Default=1** Sets the position of the first player obtained from the request.
@@ -94,7 +94,7 @@ api_client.personal_stats():
 : Get all leaderboards available from the COH API
 
 - Parameters:
-  - profile_params (mandatory): Player id. Can be steam profile id, relic id or alias (Don't forget to set the mode). Can be a list of ints or strings. Steam queries must follow /steam/[0-9]+
+  - profile_params (mandatory): Player id. Can be steam profile id, relic id or alias (Don't forget to set the mode). It can be a list of ints or strings. Steam queries must follow /steam/[0-9]+ pattern.
   - mode (optional): **Default=relic** Set the query mode. Options are [relic, steam, alias].
   - remove_server_status (optional): **Default=True** Remove from the response the server status (redundant).
 You can show it setting this param to **False**

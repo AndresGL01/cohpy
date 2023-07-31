@@ -35,10 +35,10 @@ class APIClient:
     def leaderboard(self, *, leaderboard_id, remove_server_status=True, count=200,
                     sort_type=SortType.ELO, start=1):
         """
-        Retrieve data about a specific leaderboard given her id.
+        Retrieve data about a specific leaderboard given its id.
 
         :param start: Position of the first player in the requests
-        :param sort_type: 1 == Sort by Wins, 0 == Sort by ELO. int or Type instance
+        :param sort_type: 1 == Sort by Wins, 0 == Sort by ELO. int or SortType instance
         :param count: How many players will be returned [1-200]
         :param leaderboard_id: int or cohpy.leaderboards.Code
         :param remove_server_status: Set to False if you want the server status response.

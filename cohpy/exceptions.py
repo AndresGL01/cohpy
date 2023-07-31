@@ -3,8 +3,6 @@ class CoreException(Exception):
         self.failure_msg = failure_msg
         super().__init__(self.failure_msg)
 
-    pass
-
 
 class LeaderBoardDoesNotExist(CoreException):
     def __init__(self, leaderboard_id):
